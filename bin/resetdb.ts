@@ -6,8 +6,9 @@ const fs = require('fs');
 const Client = require('pg-native');
 
 // PG connection setup
+const dbname = process.env.NODE_ENV === 'test' ? process.env.DB_TEST_NAME : process.env.DB_NAME
 const connectionString = process.env.DATABASE_URL ||
-  `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}?sslmode=disable`;
+  `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${dbname}?sslmode=disable`;
 const client = new Client();
 
 // Loads the schema files from db/schema
