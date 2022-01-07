@@ -3,7 +3,10 @@ import { Request, Response } from 'express';
 const { Pool } = require('pg');
 const dbParams = require('../../lib/db.ts');
 const db = new Pool(dbParams);
-db.connect();
+
+const close = () => {
+  return db.end()
+}
 
 const getJobs = async (req: Request, res: Response) => {
   const sql = 'SELECT * FROM jobs';
@@ -17,9 +20,15 @@ const getJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
   const sql = `SELECT * FROM jobs WHERE id = ${id}`
   const { rows } = await db.query(sql);
-  return res.status(200).json({
-    message: rows
-  })
+  if (rows.length === 0) {
+    return res.status(404).json({
+      message: 'Job not found'
+    })
+  } else {
+    return res.status(200).json({
+      message: rows
+    })
+  }
 }
 
 const addJob = async (req: Request, res: Response) => {
@@ -28,10 +37,16 @@ const addJob = async (req: Request, res: Response) => {
   const location = req.body.location
   const hourlyPay = req.body.hourly_pay_rate
   const sql = `INSERT INTO jobs (title, description, location, hourly_pay_rate) VALUES ($1, $2, $3, $4)`
-  const response = await db.query(sql, [title, description, location, hourlyPay])
-  return res.status(200).json({
-    message: 'Job successfully created!'
-  })
+  try{
+    const response = await db.query(sql, [title, description, location, hourlyPay])
+    return res.status(200).json({
+      message: 'Job successfully created!'
+    })
+  } catch (error) {
+    return res.status(400).json({
+      message: error
+    })
+  }
 }
 
 const updateJob = async (req: Request, res: Response) => {
@@ -59,20 +74,28 @@ const updateJob = async (req: Request, res: Response) => {
     }
   }
   valueString = valueString.slice(0, valueString.length - 1)
-  const sql = `UPDATE jobs SET ${valueString} WHERE id = ${id}`
+
+  const sql = `UPDATE jobs SET ${valueString} WHERE id = ${id} RETURNING *`
   const response = await db.query(sql)
-  return res.status(200).json({
-    message: 'Job successfully updated'
-  })
+  if (response.rowCount !== 0) {
+    return res.status(200).json({
+      message: 'Job successfully updated',
+      data: response.rows[0]
+    })
+  } else {
+    return res.status(400).json({
+      message: 'Could not update job'
+    })
+  }
 }
 
 const deleteJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
-  const sql = `DELETE FROM jobs WHERE id = ${id}`
+  const sql = `DELETE FROM jobs WHERE id = ${id} RETURNING *`
   const response = await db.query(sql)
   return res.status(200).json({
     message: 'Job successfully deleted'
   })
 }
 
-export default { getJobs, getJob, addJob, updateJob, deleteJob, db }
+export default { getJobs, getJob, addJob, updateJob, deleteJob, close }
