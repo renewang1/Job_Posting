@@ -10,24 +10,32 @@ const close = () => {
 
 const getJobs = async (req: Request, res: Response) => {
   const sql: string = 'SELECT * FROM jobs';
-  const { rows } = await db.query(sql);
-  return res.status(200).json({
-    message: rows
-  })
+  try {
+    const { rows } = await db.query(sql);
+    return res.status(200).json({
+      message: rows
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 const getJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
   const sql: string = `SELECT * FROM jobs WHERE id = ${id}`
-  const { rows } = await db.query(sql);
-  if (rows.length === 0) {
-    return res.status(404).json({
-      message: 'Job not found'
-    })
-  } else {
-    return res.status(200).json({
-      message: rows
-    })
+  try {
+    const { rows } = await db.query(sql);
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: 'Job not found'
+      })
+    } else {
+      return res.status(200).json({
+        message: rows
+      })
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -58,7 +66,6 @@ const updateJob = async (req: Request, res: Response) => {
     [key: string]: any;
   }
   const id: string = req.params.id
-  const updatedAt = new Date()
 
   const params: Params = { 
     'title': req.body.title, 
@@ -76,26 +83,34 @@ const updateJob = async (req: Request, res: Response) => {
   valueString = valueString.slice(0, valueString.length - 1)
 
   const sql: string = `UPDATE jobs SET ${valueString} WHERE id = ${id} RETURNING *`
-  const response = await db.query(sql)
-  if (response.rowCount !== 0) {
-    return res.status(200).json({
-      message: 'Job successfully updated',
-      data: response.rows[0]
-    })
-  } else {
-    return res.status(400).json({
-      message: 'Could not update job'
-    })
+  try {
+    const response = await db.query(sql)
+    if (response.rowCount !== 0) {
+      return res.status(200).json({
+        message: 'Job successfully updated',
+        data: response.rows[0]
+      })
+    } else {
+      return res.status(400).json({
+        message: 'Could not update job'
+      })
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 
 const deleteJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
   const sql: string = `DELETE FROM jobs WHERE id = ${id} RETURNING *`
-  const response = await db.query(sql)
-  return res.status(200).json({
-    message: 'Job successfully deleted'
-  })
+  try {
+    const response = await db.query(sql)
+    return res.status(200).json({
+      message: 'Job successfully deleted'
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export default { getJobs, getJob, addJob, updateJob, deleteJob, close }
