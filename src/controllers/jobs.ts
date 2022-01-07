@@ -9,7 +9,7 @@ const close = () => {
 }
 
 const getJobs = async (req: Request, res: Response) => {
-  const sql = 'SELECT * FROM jobs';
+  const sql: string = 'SELECT * FROM jobs';
   const { rows } = await db.query(sql);
   return res.status(200).json({
     message: rows
@@ -18,7 +18,7 @@ const getJobs = async (req: Request, res: Response) => {
 
 const getJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
-  const sql = `SELECT * FROM jobs WHERE id = ${id}`
+  const sql: string = `SELECT * FROM jobs WHERE id = ${id}`
   const { rows } = await db.query(sql);
   if (rows.length === 0) {
     return res.status(404).json({
@@ -32,11 +32,11 @@ const getJob = async (req: Request, res: Response) => {
 }
 
 const addJob = async (req: Request, res: Response) => {
-  const title = req.body.title
-  const description = req.body.description
-  const location = req.body.location
-  const hourlyPay = req.body.hourly_pay_rate
-  const sql = `INSERT INTO jobs (title, description, location, hourly_pay_rate) VALUES ($1, $2, $3, $4)`
+  const title: string = req.body.title
+  const description: string = req.body.description
+  const location: string = req.body.location
+  const hourlyPay: number = req.body.hourly_pay_rate
+  const sql: string = `INSERT INTO jobs (title, description, location, hourly_pay_rate) VALUES ($1, $2, $3, $4)`
   try{
     const response = await db.query(sql, [title, description, location, hourlyPay])
     return res.status(200).json({
@@ -57,7 +57,7 @@ const updateJob = async (req: Request, res: Response) => {
     hourly_pay_rate?: number;
     [key: string]: any;
   }
-  const id = req.params.id
+  const id: string = req.params.id
   const updatedAt = new Date()
 
   const params: Params = { 
@@ -75,7 +75,7 @@ const updateJob = async (req: Request, res: Response) => {
   }
   valueString = valueString.slice(0, valueString.length - 1)
 
-  const sql = `UPDATE jobs SET ${valueString} WHERE id = ${id} RETURNING *`
+  const sql: string = `UPDATE jobs SET ${valueString} WHERE id = ${id} RETURNING *`
   const response = await db.query(sql)
   if (response.rowCount !== 0) {
     return res.status(200).json({
@@ -91,7 +91,7 @@ const updateJob = async (req: Request, res: Response) => {
 
 const deleteJob = async (req: Request, res: Response) => {
   const id: string = req.params.id
-  const sql = `DELETE FROM jobs WHERE id = ${id} RETURNING *`
+  const sql: string = `DELETE FROM jobs WHERE id = ${id} RETURNING *`
   const response = await db.query(sql)
   return res.status(200).json({
     message: 'Job successfully deleted'
